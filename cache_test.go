@@ -155,7 +155,7 @@ func TestCache_Expiration(t *testing.T) {
 }
 
 func TestCache_GetOrSet(t *testing.T) {
-	t.Run("Not exisitng", func(t *testing.T) {
+	t.Run("Not existing", func(t *testing.T) {
 		c := cache.New[string]()
 		res := c.GetOrSet("1", func() string {
 			return "one"
@@ -166,7 +166,7 @@ func TestCache_GetOrSet(t *testing.T) {
 		}
 	})
 
-	t.Run("Exisitng", func(t *testing.T) {
+	t.Run("Existing", func(t *testing.T) {
 		c := cache.New[string]()
 		c.Set("1", "one")
 		res := c.GetOrSet("1", func() string {

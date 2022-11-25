@@ -7,6 +7,7 @@ linters-settings:
       - performance
       - style
     disabled-checks:
+      - newDeref
       - dupImport
       - ifElseChain
       - octalLiteral
@@ -33,14 +34,12 @@ linters:
     - durationcheck
     - errorlint
     - exhaustive
-    - gci
     - gocognit
     - gocritic
     - godot
     - godox
     - goerr113
     - gofmt
-    - goimports
     - goprintffuncname
     - misspell
     - nilerr
