@@ -2,6 +2,7 @@ package cache
 
 import "time"
 
+// Entry is a cache entry.
 type Entry[T any] struct {
 	Value      T
 	CachedAt   time.Time
