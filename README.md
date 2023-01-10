@@ -1,7 +1,7 @@
 <h1 align="center">AtomicGo | cache</h1>
 
 <p align="center">
-<img src="https://img.shields.io/endpoint?url=https://atomicgo.dev/api/shields/cache&style=flat-square" alt="Downloads">
+<img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fatomicgo.dev%2Fapi%2Fshields%2Fcache&style=flat-square" alt="Downloads">
 
 <a href="https://github.com/atomicgo/cache/releases">
 <img src="https://img.shields.io/github/v/release/atomicgo/cache?style=flat-square" alt="Latest Release">
