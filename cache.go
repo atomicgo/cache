@@ -5,28 +5,31 @@ import (
 	"time"
 )
 
-// Cache is a fast and thread-safe cache implementation with expiration.
+// Cache is a fast and thread-safe cache implementation with expiration for any type T.
 type Cache[T any] struct {
-	mutex           sync.Mutex
 	cache           map[string]*Entry[T]
-	autoPurgeActive bool
 	cancelAutoPurge chan struct{}
 	Options         Options
+	mutex           sync.RWMutex
+	autoPurgeActive bool
 }
 
 // Options can be passed to New to configure the cache.
 type Options struct {
+	// DefaultExpiration is the default duration before an entry expires.
 	DefaultExpiration time.Duration
+	// AutoPurgeInterval is the interval between automatic purging of expired entries.
 	AutoPurgeInterval time.Duration
 }
 
-// New returns a new Cache.
-// The default Expiration time is 0, which means no Expiration.
+// New creates a new Cache with optional Options.
+// The default expiration time is 0, which means no expiration.
 func New[T any](options ...Options) *Cache[T] {
 	opts := Options{}
 	if len(options) > 0 {
 		opts = options[0]
 	}
+
 	return &Cache[T]{
 		cache:           make(map[string]*Entry[T]),
 		cancelAutoPurge: make(chan struct{}),
@@ -34,10 +37,9 @@ func New[T any](options ...Options) *Cache[T] {
 	}
 }
 
-// EnableAutoPurge starts a goroutine that purges expired keys from the cache.
-// The interval is the time between purges.
-// If the interval is 0, the default interval of the cache options is used.
-// If the cache options do not specify a default interval, the default interval is 1 minute.
+// EnableAutoPurge starts a goroutine that periodically purges expired entries from the cache.
+// The interval between purges can be specified; if not provided, the cache's AutoPurgeInterval option is used,
+// or defaults to 1 minute if not set.
 func (c *Cache[T]) EnableAutoPurge(purgeInterval ...time.Duration) *Cache[T] {
 	if c.autoPurgeActive {
 		return c
@@ -56,23 +58,24 @@ func (c *Cache[T]) EnableAutoPurge(purgeInterval ...time.Duration) *Cache[T] {
 
 	go func() {
 		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
 		for {
 			select {
 			case <-ticker.C:
 				c.PurgeExpired()
 			case <-c.cancelAutoPurge:
-				ticker.Stop()
 				return
 			}
 		}
-
 	}()
+
 	return c
 }
 
-// Set sets the value for a key.
+// Set sets the value for a key with an optional expiration.
 // If the key already exists, the value is overwritten.
-// If the Expiration time is 0, the default Expiration time is used.
+// If the expiration time is 0, the cache's DefaultExpiration is used.
 func (c *Cache[T]) Set(key string, value T, expiration ...time.Duration) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -81,6 +84,7 @@ func (c *Cache[T]) Set(key string, value T, expiration ...time.Duration) {
 	if len(expiration) > 0 {
 		exp = expiration[0]
 	}
+
 	c.cache[key] = &Entry[T]{
 		Value:      value,
 		CachedAt:   time.Now(),
@@ -88,70 +92,101 @@ func (c *Cache[T]) Set(key string, value T, expiration ...time.Duration) {
 	}
 }
 
-// Get returns the value for a key.
-// If the key does not exist, nil is returned.
-// If the key is expired, the zero value is returned and the key is deleted.
+// Get returns the value associated with the key.
+// If the key does not exist or is expired, the zero value of T is returned.
 func (c *Cache[T]) Get(key string) T {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
-	v, ok := c.cache[key]
-	if !ok || v.Expired() {
-		return *new(T)
+	val, ok := c.cache[key]
+	if !ok || val.Expired() {
+		var zero T
+		return zero
 	}
-	return v.Value
+
+	return val.Value
 }
 
-// GetEntry returns the Entry for a key.
+// GetEntry returns the cache Entry associated with the key.
 // If the key does not exist, nil is returned.
 func (c *Cache[T]) GetEntry(key string) *Entry[T] {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
-	return c.cache[key]
+	val, ok := c.cache[key]
+	if !ok {
+		return nil
+	}
+
+	return val
 }
 
-// GetOrSet returns the value for a key.
-// If the key does not exist, the value is set to the result of the callback function and returned.
-// If the key is expired, the value is set to the result of the callback function and returned.
+// GetOrSet returns the value associated with the key.
+// If the key does not exist or is expired, the value is set to the result of the callback function and returned.
+// The callback function is called without holding a lock.
 func (c *Cache[T]) GetOrSet(key string, callback func() T, expiration ...time.Duration) T {
+	// First, try to get the value with a read lock
+	c.mutex.RLock()
+
+	val, ok := c.cache[key]
+	if ok && !val.Expired() {
+		c.mutex.RUnlock()
+		return val.Value
+	}
+	c.mutex.RUnlock()
+
+	// Not found or expired, compute value without holding the lock
+	value := callback()
+
+	// Now, acquire write lock to set the value
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+
+	// Check again if the key was set by another goroutine
+	val, ok = c.cache[key]
+	if ok && !val.Expired() {
+		return val.Value
+	}
+
+	// Set the new value
+	exp := c.Options.DefaultExpiration
+	if len(expiration) > 0 {
+		exp = expiration[0]
+	}
+
+	c.cache[key] = &Entry[T]{
+		Value:      value,
+		CachedAt:   time.Now(),
+		Expiration: exp,
+	}
+
+	return value
+}
+
+// Expired checks if the key is expired.
+func (c *Cache[T]) Expired(key string) bool {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
 	v, ok := c.cache[key]
-	if !ok || v.Expired() {
-		exp := c.Options.DefaultExpiration
-		if len(expiration) > 0 {
-			exp = expiration[0]
-		}
-		c.cache[key] = &Entry[T]{
-			Value:      callback(),
-			CachedAt:   time.Now(),
-			Expiration: exp,
-		}
-		return c.cache[key].Value
+	if !ok {
+		return false
 	}
-	return v.Value
+
+	return v.Expired()
 }
 
-// Expired returns true if the key is expired.
-func (c *Cache[T]) Expired(key string) bool {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	return c.cache[key].Expired()
-}
-
-// Contains returns true if the key is in the cache, and the key is not expired.
+// Contains returns true if the key exists in the cache and is not expired.
 func (c *Cache[T]) Contains(key string) bool {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
-	_, ok := c.cache[key]
-	return ok && !c.cache[key].Expired()
+	v, ok := c.cache[key]
+
+	return ok && !v.Expired()
 }
 
-// SetExpiration sets the Expiration time all keys in the cache.
+// SetExpiration sets the expiration time for all entries in the cache.
 func (c *Cache[T]) SetExpiration(expiration time.Duration) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -161,12 +196,18 @@ func (c *Cache[T]) SetExpiration(expiration time.Duration) {
 	}
 }
 
-// GetExpiration returns the Expiration time for a key.
+// GetExpiration returns the expiration time for a specific key.
+// If the key does not exist, zero duration is returned.
 func (c *Cache[T]) GetExpiration(key string) time.Duration {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
-	return c.cache[key].Expiration
+	v, ok := c.cache[key]
+	if !ok {
+		return 0
+	}
+
+	return v.Expiration
 }
 
 // Delete removes the key from the cache.
@@ -177,7 +218,7 @@ func (c *Cache[T]) Delete(key string) {
 	delete(c.cache, key)
 }
 
-// Purge removes all keys from the cache.
+// Purge removes all entries from the cache.
 func (c *Cache[T]) Purge() {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -185,79 +226,84 @@ func (c *Cache[T]) Purge() {
 	c.cache = make(map[string]*Entry[T])
 }
 
-// PurgeExpired removes all expired keys from the cache.
+// PurgeExpired removes all expired entries from the cache.
 func (c *Cache[T]) PurgeExpired() {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
+	now := time.Now()
 	for k, v := range c.cache {
-		if v.Expired() {
+		if v.ExpiredAt(now) {
 			delete(c.cache, k)
 		}
 	}
 }
 
-// Size returns the number of keys in the cache, expired or not.
+// Size returns the total number of entries in the cache, including expired entries.
 func (c *Cache[T]) Size() int {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
 	return len(c.cache)
 }
 
-// ValidSize returns the number of keys in the cache that are not expired.
+// ValidSize returns the number of valid (not expired) entries in the cache.
 func (c *Cache[T]) ValidSize() int {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
 	size := 0
+
+	now := time.Now()
 	for _, v := range c.cache {
-		if !v.Expired() {
+		if !v.ExpiredAt(now) {
 			size++
 		}
 	}
+
 	return size
 }
 
-// Keys returns a slice of all keys in the cache, expired or not.
+// Keys returns a slice of all keys in the cache, including expired keys.
 func (c *Cache[T]) Keys() []string {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
-	keys := make([]string, len(c.cache))
-	i := 0
+	keys := make([]string, 0, len(c.cache))
 	for k := range c.cache {
-		keys[i] = k
-		i++
+		keys = append(keys, k)
 	}
+
 	return keys
 }
 
-// ValidKeys returns a slice of all valid keys in the cache.
+// ValidKeys returns a slice of all valid (not expired) keys in the cache.
 func (c *Cache[T]) ValidKeys() []string {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
-	keys := make([]string, 0)
+	keys := make([]string, 0, len(c.cache))
+
+	now := time.Now()
 	for k, v := range c.cache {
-		if !v.Expired() {
+		if !v.ExpiredAt(now) {
 			keys = append(keys, k)
 		}
 	}
+
 	return keys
 }
 
-// Values returns a slice of all values in the cache.
+// Values returns a slice of all values in the cache, including expired values.
 func (c *Cache[T]) Values() []T {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
-	values := make([]T, len(c.cache))
-	i := 0
+	values := make([]T, 0, len(c.cache))
 	for _, v := range c.cache {
-		values[i] = v.Value
-		i++
+		values = append(values, v.Value)
 	}
+
 	return values
 }
 
@@ -265,13 +311,12 @@ func (c *Cache[T]) Values() []T {
 func (c *Cache[T]) StopAutoPurge() {
 	if c.autoPurgeActive {
 		c.cancelAutoPurge <- struct{}{}
+		c.autoPurgeActive = false
 	}
 }
 
 // Close purges the cache and stops the auto purge goroutine, if active.
 func (c *Cache[T]) Close() {
-	if c.autoPurgeActive {
-		c.StopAutoPurge()
-	}
+	c.StopAutoPurge()
 	c.Purge()
 }

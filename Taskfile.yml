@@ -15,6 +15,13 @@ tasks:
     desc: Run all tests
     cmds:
       - go test ./...
+
+  benchmark:
+    desc: Run all benchmarks
+    aliases: [bench]
+    cmds:
+      - go test -bench=. ./...
+
   tdd:
     desc: Test Driven Development - Watch tests
     watch: true
