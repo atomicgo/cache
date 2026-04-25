@@ -14,6 +14,7 @@ func (e Entry[T]) Expired() bool {
 	if e.Expiration == 0 {
 		return false
 	}
+
 	return time.Now().After(e.CachedAt.Add(e.Expiration))
 }
 

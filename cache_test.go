@@ -1,9 +1,10 @@
 package cache_test
 
 import (
-	"atomicgo.dev/cache"
 	"testing"
 	"time"
+
+	"atomicgo.dev/cache"
 )
 
 func TestNew(t *testing.T) {
@@ -23,9 +24,11 @@ func TestCache(t *testing.T) {
 		if !c.Contains("1") {
 			t.Error("expected to contain key 1")
 		}
+
 		if !c.Contains("2") {
 			t.Error("expected to contain key 2")
 		}
+
 		if !c.Contains("3") {
 			t.Error("expected to contain key 3")
 		}
@@ -35,9 +38,11 @@ func TestCache(t *testing.T) {
 		if c.Get("1") != "one" {
 			t.Error("expected key '1' to be \"one\"")
 		}
+
 		if c.Get("2") != "two" {
 			t.Error("expected key '2' to be \"two\"")
 		}
+
 		if c.Get("3") != "three" {
 			t.Error("expected key '3' to be \"three\"")
 		}
@@ -51,9 +56,11 @@ func TestCache(t *testing.T) {
 		if c.Contains("1") {
 			t.Error("expected to not contain key 1")
 		}
+
 		if !c.Contains("2") {
 			t.Error("expected to contain key 2")
 		}
+
 		if !c.Contains("3") {
 			t.Error("expected to contain key 3")
 		}
@@ -67,9 +74,11 @@ func TestCache(t *testing.T) {
 		if c.Contains("1") {
 			t.Error("expected to not contain key 1")
 		}
+
 		if c.Contains("2") {
 			t.Error("expected to not contain key 2")
 		}
+
 		if c.Contains("3") {
 			t.Error("expected to not contain key 3")
 		}
@@ -100,9 +109,11 @@ func TestCache_Expiration(t *testing.T) {
 		if !c.Contains("1") {
 			t.Error("expected to contain key 1")
 		}
+
 		if !c.Contains("2") {
 			t.Error("expected to contain key 2")
 		}
+
 		if !c.Contains("3") {
 			t.Error("expected to contain key 3")
 		}
@@ -115,9 +126,11 @@ func TestCache_Expiration(t *testing.T) {
 		if c.Contains("1") {
 			t.Error("expected to not contain key 1")
 		}
+
 		if !c.Contains("2") {
 			t.Error("expected to contain key 2")
 		}
+
 		if !c.Contains("3") {
 			t.Error("expected to contain key 3")
 		}
@@ -130,9 +143,11 @@ func TestCache_Expiration(t *testing.T) {
 		if c.Contains("1") {
 			t.Error("expected to not contain key 1")
 		}
+
 		if c.Contains("2") {
 			t.Error("expected to not contain key 2")
 		}
+
 		if !c.Contains("3") {
 			t.Error("expected to contain key 3")
 		}
@@ -145,9 +160,11 @@ func TestCache_Expiration(t *testing.T) {
 		if c.Contains("1") {
 			t.Error("expected to not contain key 1")
 		}
+
 		if c.Contains("2") {
 			t.Error("expected to not contain key 2")
 		}
+
 		if c.Contains("3") {
 			t.Error("expected to not contain key 3")
 		}

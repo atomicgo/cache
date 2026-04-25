@@ -1,10 +1,11 @@
 package cache_test
 
 import (
-	"atomicgo.dev/cache"
 	"fmt"
 	"sort"
 	"time"
+
+	"atomicgo.dev/cache"
 )
 
 func ExampleNew() {

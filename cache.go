@@ -27,6 +27,7 @@ func New[T any](options ...Options) *Cache[T] {
 	if len(options) > 0 {
 		opts = options[0]
 	}
+
 	return &Cache[T]{
 		cache:           make(map[string]*Entry[T]),
 		cancelAutoPurge: make(chan struct{}),
@@ -56,6 +57,7 @@ func (c *Cache[T]) EnableAutoPurge(purgeInterval ...time.Duration) *Cache[T] {
 
 	go func() {
 		ticker := time.NewTicker(interval)
+
 		for {
 			select {
 			case <-ticker.C:
@@ -65,8 +67,8 @@ func (c *Cache[T]) EnableAutoPurge(purgeInterval ...time.Duration) *Cache[T] {
 				return
 			}
 		}
-
 	}()
+
 	return c
 }
 
@@ -81,6 +83,7 @@ func (c *Cache[T]) Set(key string, value T, expiration ...time.Duration) {
 	if len(expiration) > 0 {
 		exp = expiration[0]
 	}
+
 	c.cache[key] = &Entry[T]{
 		Value:      value,
 		CachedAt:   time.Now(),
@@ -99,6 +102,7 @@ func (c *Cache[T]) Get(key string) T {
 	if !ok || v.Expired() {
 		return *new(T)
 	}
+
 	return v.Value
 }
 
@@ -124,13 +128,16 @@ func (c *Cache[T]) GetOrSet(key string, callback func() T, expiration ...time.Du
 		if len(expiration) > 0 {
 			exp = expiration[0]
 		}
+
 		c.cache[key] = &Entry[T]{
 			Value:      callback(),
 			CachedAt:   time.Now(),
 			Expiration: exp,
 		}
+
 		return c.cache[key].Value
 	}
+
 	return v.Value
 }
 
@@ -148,6 +155,7 @@ func (c *Cache[T]) Contains(key string) bool {
 	defer c.mutex.Unlock()
 
 	_, ok := c.cache[key]
+
 	return ok && !c.cache[key].Expired()
 }
 
@@ -211,11 +219,13 @@ func (c *Cache[T]) ValidSize() int {
 	defer c.mutex.Unlock()
 
 	size := 0
+
 	for _, v := range c.cache {
 		if !v.Expired() {
 			size++
 		}
 	}
+
 	return size
 }
 
@@ -225,11 +235,13 @@ func (c *Cache[T]) Keys() []string {
 	defer c.mutex.Unlock()
 
 	keys := make([]string, len(c.cache))
+
 	i := 0
 	for k := range c.cache {
 		keys[i] = k
 		i++
 	}
+
 	return keys
 }
 
@@ -239,11 +251,13 @@ func (c *Cache[T]) ValidKeys() []string {
 	defer c.mutex.Unlock()
 
 	keys := make([]string, 0)
+
 	for k, v := range c.cache {
 		if !v.Expired() {
 			keys = append(keys, k)
 		}
 	}
+
 	return keys
 }
 
@@ -253,11 +267,13 @@ func (c *Cache[T]) Values() []T {
 	defer c.mutex.Unlock()
 
 	values := make([]T, len(c.cache))
+
 	i := 0
 	for _, v := range c.cache {
 		values[i] = v.Value
 		i++
 	}
+
 	return values
 }
 
@@ -273,5 +289,6 @@ func (c *Cache[T]) Close() {
 	if c.autoPurgeActive {
 		c.StopAutoPurge()
 	}
+
 	c.Purge()
 }
