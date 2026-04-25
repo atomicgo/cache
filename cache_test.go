@@ -7,14 +7,14 @@ import (
 	"atomicgo.dev/cache"
 )
 
-func TestNew(t *testing.T) {
+func TestNew(_ *testing.T) {
 	cache.New[string]()
 }
 
 func TestCache(t *testing.T) {
 	c := cache.New[string]()
 
-	t.Run("Get", func(t *testing.T) {
+	t.Run("Get", func(_ *testing.T) {
 		c.Set("1", "one")
 		c.Set("2", "two")
 		c.Set("3", "three")
@@ -48,7 +48,7 @@ func TestCache(t *testing.T) {
 		}
 	})
 
-	t.Run("Delete", func(t *testing.T) {
+	t.Run("Delete", func(_ *testing.T) {
 		c.Delete("1")
 	})
 
@@ -66,7 +66,7 @@ func TestCache(t *testing.T) {
 		}
 	})
 
-	t.Run("Purge", func(t *testing.T) {
+	t.Run("Purge", func(_ *testing.T) {
 		c.Purge()
 	})
 
@@ -96,7 +96,7 @@ func TestCache_Expiration(t *testing.T) {
 		DefaultExpiration: time.Millisecond * 10,
 	})
 
-	t.Run("Set values", func(t *testing.T) {
+	t.Run("Set values", func(_ *testing.T) {
 		c.Set("1", "one")                        // should use default of 10ms
 		c.Set("2", "two", time.Millisecond*20)   // should use 20ms
 		c.Set("3", "three", time.Millisecond*30) // should use 30ms
