@@ -15,7 +15,7 @@ func (e Entry[T]) Expired() bool {
 		return false
 	}
 
-	return time.Now().After(e.CachedAt.Add(e.Expiration))
+	return !time.Now().Before(e.CachedAt.Add(e.Expiration))
 }
 
 // SetExpiration sets the Expiration time for the Entry.
