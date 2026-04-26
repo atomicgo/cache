@@ -40,7 +40,7 @@
 </a>
 
 <a href="https://codecov.io/gh/atomicgo/cache">
-<!-- unittestcount:start --><img src="https://img.shields.io/badge/Unit_Tests-38-magenta?style=flat-square" alt="Unit test count"><!-- unittestcount:end -->
+<!-- unittestcount:start --><img src="https://img.shields.io/badge/Unit_Tests-37-magenta?style=flat-square" alt="Unit test count"><!-- unittestcount:end -->
 </a>
 
 <a href="https://opensource.org/licenses/MIT" target="_blank">
@@ -121,7 +121,7 @@ Package cache is a generic, fast and thread\-safe cache implementation to improv
 
 
 <a name="Cache"></a>
-## type [Cache](<https://github.com/atomicgo/cache/blob/main/cache.go#L9-L15>)
+## type [Cache](<https://github.com/atomicgo/cache/blob/main/cache.go#L9-L16>)
 
 Cache is a fast and thread\-safe cache implementation with expiration.
 
@@ -133,7 +133,7 @@ type Cache[T any] struct {
 ```
 
 <a name="New"></a>
-### func [New](<https://github.com/atomicgo/cache/blob/main/cache.go#L25>)
+### func [New](<https://github.com/atomicgo/cache/blob/main/cache.go#L26>)
 
 ```go
 func New[T any](options ...Options) *Cache[T]
@@ -184,7 +184,7 @@ func main() {
 
 
 <a name="Cache[T].Close"></a>
-### func \(\*Cache\[T\]\) [Close](<https://github.com/atomicgo/cache/blob/main/cache.go#L288>)
+### func \(\*Cache\[T\]\) [Close](<https://github.com/atomicgo/cache/blob/main/cache.go#L321>)
 
 ```go
 func (c *Cache[T]) Close()
@@ -231,7 +231,7 @@ func main() {
 
 
 <a name="Cache[T].Contains"></a>
-### func \(\*Cache\[T\]\) [Contains](<https://github.com/atomicgo/cache/blob/main/cache.go#L153>)
+### func \(\*Cache\[T\]\) [Contains](<https://github.com/atomicgo/cache/blob/main/cache.go#L168>)
 
 ```go
 func (c *Cache[T]) Contains(key string) bool
@@ -277,7 +277,7 @@ false
 
 
 <a name="Cache[T].Delete"></a>
-### func \(\*Cache\[T\]\) [Delete](<https://github.com/atomicgo/cache/blob/main/cache.go#L181>)
+### func \(\*Cache\[T\]\) [Delete](<https://github.com/atomicgo/cache/blob/main/cache.go#L201>)
 
 ```go
 func (c *Cache[T]) Delete(key string)
@@ -333,7 +333,7 @@ func (c *Cache[T]) EnableAutoPurge(purgeInterval ...time.Duration) *Cache[T]
 EnableAutoPurge starts a goroutine that purges expired keys from the cache. The interval is the time between purges. If the interval is 0, the default interval of the cache options is used. If the cache options do not specify a default interval, the default interval is 1 minute.
 
 <a name="Cache[T].Expired"></a>
-### func \(\*Cache\[T\]\) [Expired](<https://github.com/atomicgo/cache/blob/main/cache.go#L145>)
+### func \(\*Cache\[T\]\) [Expired](<https://github.com/atomicgo/cache/blob/main/cache.go#L158>)
 
 ```go
 func (c *Cache[T]) Expired(key string) bool
@@ -385,7 +385,7 @@ true
 
 
 <a name="Cache[T].Get"></a>
-### func \(\*Cache\[T\]\) [Get](<https://github.com/atomicgo/cache/blob/main/cache.go#L97>)
+### func \(\*Cache\[T\]\) [Get](<https://github.com/atomicgo/cache/blob/main/cache.go#L106>)
 
 ```go
 func (c *Cache[T]) Get(key string) T
@@ -427,7 +427,7 @@ one
 
 
 <a name="Cache[T].GetEntry"></a>
-### func \(\*Cache\[T\]\) [GetEntry](<https://github.com/atomicgo/cache/blob/main/cache.go#L111>)
+### func \(\*Cache\[T\]\) [GetEntry](<https://github.com/atomicgo/cache/blob/main/cache.go#L124>)
 
 ```go
 func (c *Cache[T]) GetEntry(key string) *Entry[T]
@@ -475,7 +475,7 @@ one
 
 
 <a name="Cache[T].GetExpiration"></a>
-### func \(\*Cache\[T\]\) [GetExpiration](<https://github.com/atomicgo/cache/blob/main/cache.go#L173>)
+### func \(\*Cache\[T\]\) [GetExpiration](<https://github.com/atomicgo/cache/blob/main/cache.go#L188>)
 
 ```go
 func (c *Cache[T]) GetExpiration(key string) time.Duration
@@ -520,7 +520,7 @@ func main() {
 
 
 <a name="Cache[T].GetOrSet"></a>
-### func \(\*Cache\[T\]\) [GetOrSet](<https://github.com/atomicgo/cache/blob/main/cache.go#L121>)
+### func \(\*Cache\[T\]\) [GetOrSet](<https://github.com/atomicgo/cache/blob/main/cache.go#L134>)
 
 ```go
 func (c *Cache[T]) GetOrSet(key string, callback func() T, expiration ...time.Duration) T
@@ -580,7 +580,7 @@ something else
 
 
 <a name="Cache[T].Keys"></a>
-### func \(\*Cache\[T\]\) [Keys](<https://github.com/atomicgo/cache/blob/main/cache.go#L233>)
+### func \(\*Cache\[T\]\) [Keys](<https://github.com/atomicgo/cache/blob/main/cache.go#L253>)
 
 ```go
 func (c *Cache[T]) Keys() []string
@@ -628,7 +628,7 @@ func main() {
 
 
 <a name="Cache[T].Purge"></a>
-### func \(\*Cache\[T\]\) [Purge](<https://github.com/atomicgo/cache/blob/main/cache.go#L189>)
+### func \(\*Cache\[T\]\) [Purge](<https://github.com/atomicgo/cache/blob/main/cache.go#L209>)
 
 ```go
 func (c *Cache[T]) Purge()
@@ -675,7 +675,7 @@ func main() {
 
 
 <a name="Cache[T].PurgeExpired"></a>
-### func \(\*Cache\[T\]\) [PurgeExpired](<https://github.com/atomicgo/cache/blob/main/cache.go#L197>)
+### func \(\*Cache\[T\]\) [PurgeExpired](<https://github.com/atomicgo/cache/blob/main/cache.go#L217>)
 
 ```go
 func (c *Cache[T]) PurgeExpired()
@@ -731,7 +731,7 @@ func main() {
 
 
 <a name="Cache[T].Set"></a>
-### func \(\*Cache\[T\]\) [Set](<https://github.com/atomicgo/cache/blob/main/cache.go#L78>)
+### func \(\*Cache\[T\]\) [Set](<https://github.com/atomicgo/cache/blob/main/cache.go#L87>)
 
 ```go
 func (c *Cache[T]) Set(key string, value T, expiration ...time.Duration)
@@ -766,7 +766,7 @@ func main() {
 
 
 <a name="Cache[T].SetExpiration"></a>
-### func \(\*Cache\[T\]\) [SetExpiration](<https://github.com/atomicgo/cache/blob/main/cache.go#L163>)
+### func \(\*Cache\[T\]\) [SetExpiration](<https://github.com/atomicgo/cache/blob/main/cache.go#L178>)
 
 ```go
 func (c *Cache[T]) SetExpiration(expiration time.Duration)
@@ -820,7 +820,7 @@ func main() {
 
 
 <a name="Cache[T].Size"></a>
-### func \(\*Cache\[T\]\) [Size](<https://github.com/atomicgo/cache/blob/main/cache.go#L209>)
+### func \(\*Cache\[T\]\) [Size](<https://github.com/atomicgo/cache/blob/main/cache.go#L229>)
 
 ```go
 func (c *Cache[T]) Size() int
@@ -864,7 +864,7 @@ func main() {
 
 
 <a name="Cache[T].StopAutoPurge"></a>
-### func \(\*Cache\[T\]\) [StopAutoPurge](<https://github.com/atomicgo/cache/blob/main/cache.go#L281>)
+### func \(\*Cache\[T\]\) [StopAutoPurge](<https://github.com/atomicgo/cache/blob/main/cache.go#L301>)
 
 ```go
 func (c *Cache[T]) StopAutoPurge()
@@ -918,7 +918,7 @@ func main() {
 
 
 <a name="Cache[T].ValidKeys"></a>
-### func \(\*Cache\[T\]\) [ValidKeys](<https://github.com/atomicgo/cache/blob/main/cache.go#L249>)
+### func \(\*Cache\[T\]\) [ValidKeys](<https://github.com/atomicgo/cache/blob/main/cache.go#L269>)
 
 ```go
 func (c *Cache[T]) ValidKeys() []string
@@ -976,7 +976,7 @@ func main() {
 
 
 <a name="Cache[T].ValidSize"></a>
-### func \(\*Cache\[T\]\) [ValidSize](<https://github.com/atomicgo/cache/blob/main/cache.go#L217>)
+### func \(\*Cache\[T\]\) [ValidSize](<https://github.com/atomicgo/cache/blob/main/cache.go#L237>)
 
 ```go
 func (c *Cache[T]) ValidSize() int
@@ -1028,7 +1028,7 @@ func main() {
 
 
 <a name="Cache[T].Values"></a>
-### func \(\*Cache\[T\]\) [Values](<https://github.com/atomicgo/cache/blob/main/cache.go#L265>)
+### func \(\*Cache\[T\]\) [Values](<https://github.com/atomicgo/cache/blob/main/cache.go#L285>)
 
 ```go
 func (c *Cache[T]) Values() []T
@@ -1195,7 +1195,7 @@ func main() {
 
 
 <a name="Options"></a>
-## type [Options](<https://github.com/atomicgo/cache/blob/main/cache.go#L18-L21>)
+## type [Options](<https://github.com/atomicgo/cache/blob/main/cache.go#L19-L22>)
 
 Options can be passed to New to configure the cache.
 
